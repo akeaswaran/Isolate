@@ -20,19 +20,18 @@
         PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Isolate 0.1"];
         [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
         
-        PSSpecifier *showalways = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
+        PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
                                                                  get:@selector(getValueForSpecifier:)
                                                               detail:Nil
                                                                 cell:PSSwitchCell
                                                                 edit:Nil];
-        [showalways setIdentifier:kISEnabledKey];
-        [showalways setProperty:@(YES) forKey:kISEnabledKey];
-        
+        [enabled setIdentifier:kISEnabledKey];
+        [enabled setProperty:@(YES) forKey:kISEnabledKey];
         
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"contact developer"];
-        [thirdGroup setProperty:@"Feel free to follow me on Twitter for any updates on my apps and tweaks or contact me for support questions.\n\nThis tweak is Open-Source, so make sure to check out my GitHub." forKey:@"footerText"];
+        [thirdGroup setProperty:@"Feel free to follow me on Twitter for any updates on my apps and tweaks or contact me for support questions.\n\nThis tweak is open source, so make sure to check out my GitHub." forKey:@"footerText"];
         
         PSSpecifier *twitter = [PSSpecifier preferenceSpecifierNamed:@"twitter"
                                                              target:self
@@ -61,9 +60,7 @@
         [github setProperty:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/IsolatePrefs.bundle/github.png"] forKey:@"iconImage"];
         
         [specifiers addObject:firstGroup];
-        [specifiers addObject:showalways];
-       
-        
+        [specifiers addObject:enabled];
         [specifiers addObject:thirdGroup];
         [specifiers addObject:twitter];
         [specifiers addObject:github];
@@ -108,7 +105,7 @@
         
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, TRUE);
         
-    }
+    }  
 }
 
 - (void)openTwitter

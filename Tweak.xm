@@ -1,4 +1,5 @@
 #import "Headers.h"
+
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"enabled"
 #define kISMutedConversationsKey @"mutedConvos"
