@@ -1,6 +1,6 @@
 Package: com.akeaswaran.isolate
 Name: Isolate
-Depends: mobilesubstrate, preferenceloader, firmware (>= 8.1)
+Depends: mobilesubstrate, preferenceloader, firmware (>= 8.0)
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: How iOS 8's group message DND mode was supposed to be implemented.

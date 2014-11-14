@@ -14,5 +14,8 @@ How iOS 8's group message DND mode was supposed to be implemented.
 ### Compatibility
 * Isolate works with iOS 8.0+ and all iDevice models
 
+### To-Do
+* Switches for hiding banners, LS notifications, and NC notifications
+
 ### Open-Source License
 * Isolate can be licensed under the MIT License. See [LICENSE.md](https://github.com/akeaswaran/Isolate/blob/master/LICENSE.md) for more information.
