@@ -1,0 +1,9 @@
+Package: com.akeaswaran.isolate
+Name: Isolate
+Depends: mobilesubstrate, preferenceloader, firmware (>= 8.1)
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: The way group message muting was meant to be implemented.
+Maintainer: Akshay Easwaran
+Author: Akshay Easwaran
+Section: Tweaks

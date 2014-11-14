@@ -1,0 +1,10 @@
+{
+    entry = {
+	bundle = IsolatePrefs;
+	cell = PSLinkCell;
+	detail = IsolatePrefsListController;
+	icon = IsolatePrefs.png;
+	isController = 1;
+	label = Isolate;
+    };
+}
