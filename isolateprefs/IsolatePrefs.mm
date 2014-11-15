@@ -67,7 +67,7 @@
         [hideBanners setProperty:@(YES) forKey:@"enabled"];
 
 
-        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"contact developer"];
+        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
         [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
@@ -238,7 +238,7 @@
 
 - (void)openGithub
 {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran/isolate"]];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran/"]];
 }
 
 @end
