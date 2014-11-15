@@ -2,7 +2,8 @@
 #import <Preferences/PSSpecifier.h>
 
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
-#define kISEnabledKey @"enabled"
+#define kISEnabledKey @"tweakEnabled"
+#define kISClearBadgesKey @"clearBadges"
 
 @interface IsolatePrefsListController: PSListController {
 }
@@ -28,23 +29,20 @@
                                                                 cell:PSSwitchCell
                                                                 edit:Nil];
         [enabled setIdentifier:kISEnabledKey];
-        [enabled setProperty:@(YES) forKey:kISEnabledKey];
+        [enabled setProperty:@(YES) forKey:@"enabled"];
         
+        PSSpecifier *clearBadges = [PSSpecifier preferenceSpecifierNamed:@"Clear Badges"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [clearBadges setIdentifier:kISClearBadgesKey];
+        [clearBadges setProperty:@(YES) forKey:@"enabled"];
+
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"contact developer"];
-        [thirdGroup setProperty:@"Feel free to follow me on Twitter for any updates on my apps and tweaks or contact me for support questions.\n\nThis tweak is open source, so make sure to check out my GitHub." forKey:@"footerText"];
-        
-        PSSpecifier *twitter = [PSSpecifier preferenceSpecifierNamed:@"twitter"
-                                                             target:self
-                                                                set:nil
-                                                                get:nil
-                                                             detail:Nil
-                                                               cell:PSLinkCell
-                                                               edit:Nil];
-        twitter.name = @"@akeaswaran";
-        twitter->action = @selector(openTwitter);
-        [twitter setIdentifier:@"twitter"];
-        [twitter setProperty:@(YES) forKey:@"enabled"];
-        [twitter setProperty:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/IsolatePrefs.bundle/twitter.png"] forKey:@"iconImage"];
+        [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
                                                               target:self
@@ -61,8 +59,8 @@
         
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
+        [specifiers addObject:clearBadges];
         [specifiers addObject:thirdGroup];
-        [specifiers addObject:twitter];
         [specifiers addObject:github];
         
         _specifiers = specifiers;
@@ -79,6 +77,12 @@
         if (settings) {
             if ([settings objectForKey:kISEnabledKey]) {
                 if ([[settings objectForKey:kISEnabledKey] boolValue]) {
+                    return [NSNumber numberWithBool:YES];
+                }
+            } 
+
+            if ([settings objectForKey:kISClearBadgesKey]) {
+                if ([[settings objectForKey:kISClearBadgesKey] boolValue]) {
                     return [NSNumber numberWithBool:YES];
                 }
             }
@@ -105,7 +109,24 @@
         
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, TRUE);
         
-    }  
+    }
+
+    if ([specifier.identifier isEqualToString:kISClearBadgesKey]) {
+        if ([value boolValue]) {
+            NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
+            [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
+            [defaults setObject:value forKey:kISClearBadgesKey];
+            [defaults writeToFile:kISClearBadgesKey atomically:YES];
+        } else {
+            NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
+            [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
+            [defaults setObject:value forKey:kISClearBadgesKey];
+            [defaults writeToFile:kISClearBadgesKey atomically:YES];
+        }
+        
+        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, TRUE);
+        
+    }
 }
 
 - (void)openTwitter
