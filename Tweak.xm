@@ -3,7 +3,9 @@
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
 #define kISMutedConversationsKey @"mutedConvos"
-#define kISClearBadgesKey @"clearBadges"
+#define kISHideInNCKey @"hideInNC"
+#define kISHideBannersKey @"hideBanners"
+#define kISHideOnLSKey @"hideOnLS"
 
 #ifdef DEBUG
     #define ISLog(fmt, ...) NSLog((@"[Isolate] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -12,7 +14,9 @@
 #endif
 
 static BOOL enabled = YES;
-static BOOL clearBadges = NO;
+static BOOL hideInNC = YES;
+static BOOL hideOnLS = YES;
+static BOOL hideBanners = YES;
 static NSMutableArray *mutedConversations;
 
 #pragma mark - Static Methods
@@ -23,13 +27,43 @@ static void ReloadSettings()
 
     if (settings) {
         if ([settings objectForKey:kISEnabledKey]) {
-            enabled = [[settings objectForKey:kISEnabledKey] boolValue];
+            NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+            if (enabledNum.intValue == 1) {
+                enabled = YES;
+            } else {
+                enabled = NO;
+            }
         }
+
         if ([settings objectForKey:kISMutedConversationsKey]) {
         	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
         }
-        if ([settings objectForKey:kISClearBadgesKey]) {
-        	clearBadges = [[settings objectForKey:kISClearBadgesKey] boolValue];
+
+        if ([settings objectForKey:kISHideInNCKey]) {
+        	NSNumber *ncNum = [settings objectForKey:[settings objectForKey:kISHideInNCKey]];
+            if (ncNum.intValue == 1) {
+                hideInNC = YES;
+            } else {
+                hideInNC = NO;
+            }
+        }
+
+        if ([settings objectForKey:kISHideOnLSKey]) {
+        	NSNumber *lsNum = [settings objectForKey:[settings objectForKey:kISHideOnLSKey]];
+            if (lsNum.intValue == 1) {
+                hideOnLS = YES;
+            } else {
+                hideOnLS = NO;
+            }
+        }
+
+        if ([settings objectForKey:kISHideBannersKey]) {
+        	NSNumber *bannerNum = [settings objectForKey:[settings objectForKey:kISHideBannersKey]];
+            if (bannerNum.intValue == 1) {
+                hideBanners = YES;
+            } else {
+                hideBanners = NO;
+            }
         }
     }
 
@@ -42,13 +76,43 @@ static void ReloadSettingsOnStartup()
 
     if (settings) {
         if ([settings objectForKey:kISEnabledKey]) {
-            enabled = [[settings objectForKey:kISEnabledKey] boolValue];
+            NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+            if (enabledNum.intValue == 1) {
+                enabled = YES;
+            } else {
+                enabled = NO;
+            }
         }
+
         if ([settings objectForKey:kISMutedConversationsKey]) {
         	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
         }
-        if ([settings objectForKey:kISClearBadgesKey]) {
-        	clearBadges = [[settings objectForKey:kISClearBadgesKey] boolValue];
+
+        if ([settings objectForKey:kISHideInNCKey]) {
+        	NSNumber *ncNum = [settings objectForKey:[settings objectForKey:kISHideInNCKey]];
+            if (ncNum.intValue == 1) {
+                hideInNC = YES;
+            } else {
+                hideInNC = NO;
+            }
+        }
+
+        if ([settings objectForKey:kISHideOnLSKey]) {
+        	NSNumber *lsNum = [settings objectForKey:[settings objectForKey:kISHideOnLSKey]];
+            if (lsNum.intValue == 1) {
+                hideOnLS = YES;
+            } else {
+                hideOnLS = NO;
+            }
+        }
+
+        if ([settings objectForKey:kISHideBannersKey]) {
+        	NSNumber *bannerNum = [settings objectForKey:[settings objectForKey:kISHideBannersKey]];
+            if (bannerNum.intValue == 1) {
+                hideBanners = YES;
+            } else {
+                hideBanners = NO;
+            }
         }
     }
 
@@ -94,10 +158,6 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 		for (NSString *groupID in muted) {
 			if ([groupID isEqualToString:chatId]) {
 				ISLog(@"MUTING CONVERSATION WITH GROUP ID: %@",groupID);
-				if (clearBadges) {
-   					SBApplicationIcon *appIcon = [[%c(SBApplicationIcon) alloc] initWithApplication:[[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:bulletin.sectionID]];
-    				[appIcon setBadge:nil];
-  				}
 				return YES;
 			}
 		}
@@ -194,16 +254,17 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBLockScreenNotificationListController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (!CancelBulletin(bulletin)) {
+	if (!CancelBulletin(bulletin) && !hideOnLS) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
+
 	}
 }
 
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
-	if (!CancelBulletin(item.activeBulletin)) {
+	if (!CancelBulletin(item.activeBulletin) && !hideOnLS) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
 		%orig;
 	} else {
@@ -217,7 +278,7 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook BBServer
 
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3 {
-	if (!CancelBulletin(bulletin)) {
+	if (!CancelBulletin(bulletin) && !hideInNC) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
 	} else {
@@ -230,7 +291,7 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBBulletinObserverViewController  
 
 -(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
-	if (!CancelBulletin(bulletinInfo.representedBulletin)) {
+	if (!CancelBulletin(bulletinInfo.representedBulletin) && !hideInNC) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinInfo.representedBulletin);
 		%orig;
 	} else {
@@ -244,7 +305,7 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBBulletinBannerController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (!CancelBulletin(bulletin)) {
+	if (!CancelBulletin(bulletin) && !hideBanners) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
 	} else {

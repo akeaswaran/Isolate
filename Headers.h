@@ -8,6 +8,7 @@
 @interface SBApplicationIcon
 - (id)initWithApplication:(id)arg1;
 - (void)setBadge:(id)arg1;
+- (id)badgeNumberOrString;
 @end
 
 @interface BBBulletin
