@@ -6,6 +6,7 @@
 #define kISHideInNCKey @"hideInNC"
 #define kISHideBannersKey @"hideBanners"
 #define kISHideOnLSKey @"hideOnLS"
+#define kISClearBadgesKey @"clearBadges"
 
 #ifdef DEBUG
     #define ISLog(fmt, ...) NSLog((@"[Isolate] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -17,7 +18,10 @@ static BOOL enabled = YES;
 static BOOL hideInNC = YES;
 static BOOL hideOnLS = YES;
 static BOOL hideBanners = YES;
+static BOOL clearBadges = NO;
 static NSMutableArray *mutedConversations;
+
+static BOOL _preventBadgeIncrement = NO;
 
 #pragma mark - Static Methods
 
@@ -63,6 +67,15 @@ static void ReloadSettings()
                 hideBanners = YES;
             } else {
                 hideBanners = NO;
+            }
+        }
+
+        if ([settings objectForKey:kISClearBadgesKey]) {
+            NSNumber *badgesNum = [settings objectForKey:kISClearBadgesKey];
+            if (badgesNum.intValue == 1) {
+                clearBadges = YES;
+            } else {
+                clearBadges = NO;
             }
         }
     }
@@ -114,6 +127,15 @@ static void ReloadSettingsOnStartup()
                 hideBanners = NO;
             }
         }
+
+        if ([settings objectForKey:kISClearBadgesKey]) {
+            NSNumber *badgesNum = [settings objectForKey:kISClearBadgesKey];
+            if (badgesNum.intValue == 1) {
+                clearBadges = YES;
+            } else {
+                clearBadges = NO;
+            }
+        }
     }
 
     ISLog(@"RELOADSETTINGSONSTARTUP: %@",settings);
@@ -158,13 +180,20 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 		for (NSString *groupID in muted) {
 			if ([groupID isEqualToString:chatId]) {
 				ISLog(@"MUTING CONVERSATION WITH GROUP ID: %@",groupID);
+				if (clearBadges) {
+					_preventBadgeIncrement = YES;
+				} else {
+					_preventBadgeIncrement = NO;
+				}
 				return YES;
 			}
 		}
 	} else {
 		ISLog(@"DISABLED, INVALID, OR NOT GROUP MESSAGE; SO NOT MUTING CONVERSATION");
+		_preventBadgeIncrement = NO;
 		return NO;
 	}
+	_preventBadgeIncrement = NO;
 	return NO;
 }
 
@@ -256,6 +285,7 @@ static void RemoveConversation(CKConversation *conversation) {
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
 	if (!CancelBulletin(bulletin) && !hideOnLS) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
+		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
@@ -266,6 +296,7 @@ static void RemoveConversation(CKConversation *conversation) {
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
 	if (!CancelBulletin(item.activeBulletin) && !hideOnLS) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
+		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
@@ -280,6 +311,7 @@ static void RemoveConversation(CKConversation *conversation) {
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3 {
 	if (!CancelBulletin(bulletin) && !hideInNC) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
+		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
@@ -293,6 +325,7 @@ static void RemoveConversation(CKConversation *conversation) {
 -(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
 	if (!CancelBulletin(bulletinInfo.representedBulletin) && !hideInNC) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinInfo.representedBulletin);
+		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
@@ -307,9 +340,23 @@ static void RemoveConversation(CKConversation *conversation) {
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
 	if (!CancelBulletin(bulletin) && !hideBanners) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
+		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
+	}
+}
+
+%end
+
+//Blocks Badges
+%hook SBIcon 
+
+-(void)setBadge:(NSString*)arg1 {
+	if (enabled && clearBadges && _preventBadgeIncrement && [[self applicationBundleID] isEqual:@"com.apple.MobileSMS"]) {
+		ISLog(@"BLOCKING BADGE FOR MESSAGES");
+	} else {
+		%orig;
 	}
 }
 

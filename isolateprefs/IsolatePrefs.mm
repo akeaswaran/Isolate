@@ -6,6 +6,7 @@
 #define kISHideInNCKey @"hideInNC"
 #define kISHideBannersKey @"hideBanners"
 #define kISHideOnLSKey @"hideOnLS"
+#define kISClearBadgesKey @"clearBadges"
 
 @interface IsolatePrefsListController: PSListController {
 }
@@ -66,6 +67,16 @@
         [hideBanners setIdentifier:kISHideBannersKey];
         [hideBanners setProperty:@(YES) forKey:@"enabled"];
 
+        PSSpecifier *clearBadges = [PSSpecifier preferenceSpecifierNamed:@"Prevent Badge Increment"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [clearBadges setIdentifier:kISClearBadgesKey];
+        [clearBadges setProperty:@(YES) forKey:@"enabled"];
+
 
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
         [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
@@ -90,6 +101,7 @@
         [specifiers addObject:hideInNC];
         [specifiers addObject:hideOnLS];
         [specifiers addObject:hideBanners];
+        [specifiers addObject:clearBadges];
 
         [specifiers addObject:thirdGroup];
         [specifiers addObject:github];
@@ -158,6 +170,20 @@
             }
         }
     }
+
+    if ([specifier.identifier isEqualToString:kISClearBadgesKey]) {
+        if (settings)
+        {
+            if ([settings objectForKey:kISClearBadgesKey]) {
+                NSNumber *enabled = [settings objectForKey:kISClearBadgesKey];
+                if (enabled.intValue == 1) {
+                    return [NSNumber numberWithBool:YES];
+                } else {
+                    return[NSNumber numberWithBool:NO];
+                }
+            }
+        }
+    }
     
     return [NSNumber numberWithBool:NO];
 }
@@ -180,6 +206,7 @@
             [defaults setObject:value forKey:kISHideInNCKey];
             [defaults setObject:value forKey:kISHideOnLSKey];
             [defaults setObject:value forKey:kISHideBannersKey];
+            [defaults setObject:value forKey:kISClearBadgesKey];
             [defaults writeToFile:kISSettingsPath atomically:YES];
         }
         
@@ -229,6 +256,22 @@
             NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
             [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
             [defaults setObject:value forKey:kISHideBannersKey];
+            [defaults writeToFile:kISSettingsPath atomically:YES];
+        }
+        
+        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, TRUE);
+    }
+
+    if ([specifier.identifier isEqualToString:kISClearBadgesKey]) {
+        if ([value intValue] == 1) {
+            NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
+            [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
+            [defaults setObject:value forKey:kISClearBadgesKey];
+            [defaults writeToFile:kISSettingsPath atomically:YES];
+        } else {
+            NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
+            [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
+            [defaults setObject:value forKey:kISClearBadgesKey];
             [defaults writeToFile:kISSettingsPath atomically:YES];
         }
         
