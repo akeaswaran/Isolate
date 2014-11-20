@@ -20,6 +20,7 @@ static BOOL hideOnLS = YES;
 static BOOL hideBanners = YES;
 static BOOL clearBadges = NO;
 static NSMutableArray *mutedConversations;
+static NSDictionary *prefs;
 
 static BOOL _preventBadgeIncrement = NO;
 
@@ -27,11 +28,22 @@ static BOOL _preventBadgeIncrement = NO;
 
 static void ReloadSettings()
 {
-  	NSDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	CFStringRef appID = CFSTR("com.akeaswaran.isolate");
+	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!keyList) {
+	    ISLog(@"There's been an error getting the key list!");	     
+	    return;
+	}
+	prefs = (__bridge NSDictionary*)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!prefs) {
+     ISLog(@"There's been an error getting the preferences dictionary!");
+	}
 
-    if (settings) {
-        if ([settings objectForKey:kISEnabledKey]) {
-            NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+  	//prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+
+    if (prefs) {
+        if ([prefs objectForKey:kISEnabledKey]) {
+            NSNumber *enabledNum = [prefs objectForKey:kISEnabledKey];
             if (enabledNum.intValue == 1) {
                 enabled = YES;
             } else {
@@ -39,12 +51,12 @@ static void ReloadSettings()
             }
         }
 
-        if ([settings objectForKey:kISMutedConversationsKey]) {
-        	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
+        if ([prefs objectForKey:kISMutedConversationsKey]) {
+        	mutedConversations = [NSMutableArray arrayWithArray:[prefs objectForKey:kISMutedConversationsKey]];
         }
 
-        if ([settings objectForKey:kISHideInNCKey]) {
-        	NSNumber *ncNum = [settings objectForKey:[settings objectForKey:kISHideInNCKey]];
+        if ([prefs objectForKey:kISHideInNCKey]) {
+        	NSNumber *ncNum = [prefs objectForKey:kISHideInNCKey];
             if (ncNum.intValue == 1) {
                 hideInNC = YES;
             } else {
@@ -52,8 +64,8 @@ static void ReloadSettings()
             }
         }
 
-        if ([settings objectForKey:kISHideOnLSKey]) {
-        	NSNumber *lsNum = [settings objectForKey:[settings objectForKey:kISHideOnLSKey]];
+        if ([prefs objectForKey:kISHideOnLSKey]) {
+        	NSNumber *lsNum = [prefs objectForKey:kISHideOnLSKey];
             if (lsNum.intValue == 1) {
                 hideOnLS = YES;
             } else {
@@ -61,8 +73,8 @@ static void ReloadSettings()
             }
         }
 
-        if ([settings objectForKey:kISHideBannersKey]) {
-        	NSNumber *bannerNum = [settings objectForKey:[settings objectForKey:kISHideBannersKey]];
+        if ([prefs objectForKey:kISHideBannersKey]) {
+        	NSNumber *bannerNum = [prefs objectForKey:kISHideBannersKey];
             if (bannerNum.intValue == 1) {
                 hideBanners = YES;
             } else {
@@ -70,8 +82,8 @@ static void ReloadSettings()
             }
         }
 
-        if ([settings objectForKey:kISClearBadgesKey]) {
-            NSNumber *badgesNum = [settings objectForKey:kISClearBadgesKey];
+        if ([prefs objectForKey:kISClearBadgesKey]) {
+            NSNumber *badgesNum = [prefs objectForKey:kISClearBadgesKey];
             if (badgesNum.intValue == 1) {
                 clearBadges = YES;
             } else {
@@ -80,16 +92,27 @@ static void ReloadSettings()
         }
     }
 
-    ISLog(@"RELOADSETTINGS: %@",settings);
+    ISLog(@"RELOADSETTINGS: %@",prefs);
 }
 
 static void ReloadSettingsOnStartup()
 {
-   	NSDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+   	CFStringRef appID = CFSTR("com.akeaswaran.isolate");
+	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!keyList) {
+	    ISLog(@"There's been an error getting the key list!");	     
+	    return;
+	}
+	prefs = (__bridge NSDictionary*)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!prefs) {
+     ISLog(@"There's been an error getting the preferences dictionary!");
+	}
 
-    if (settings) {
-        if ([settings objectForKey:kISEnabledKey]) {
-            NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+  	//prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+
+    if (prefs) {
+        if ([prefs objectForKey:kISEnabledKey]) {
+            NSNumber *enabledNum = [prefs objectForKey:kISEnabledKey];
             if (enabledNum.intValue == 1) {
                 enabled = YES;
             } else {
@@ -97,12 +120,12 @@ static void ReloadSettingsOnStartup()
             }
         }
 
-        if ([settings objectForKey:kISMutedConversationsKey]) {
-        	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
+        if ([prefs objectForKey:kISMutedConversationsKey]) {
+        	mutedConversations = [NSMutableArray arrayWithArray:[prefs objectForKey:kISMutedConversationsKey]];
         }
 
-        if ([settings objectForKey:kISHideInNCKey]) {
-        	NSNumber *ncNum = [settings objectForKey:[settings objectForKey:kISHideInNCKey]];
+        if ([prefs objectForKey:kISHideInNCKey]) {
+        	NSNumber *ncNum = [prefs objectForKey:kISHideInNCKey];
             if (ncNum.intValue == 1) {
                 hideInNC = YES;
             } else {
@@ -110,8 +133,8 @@ static void ReloadSettingsOnStartup()
             }
         }
 
-        if ([settings objectForKey:kISHideOnLSKey]) {
-        	NSNumber *lsNum = [settings objectForKey:[settings objectForKey:kISHideOnLSKey]];
+        if ([prefs objectForKey:kISHideOnLSKey]) {
+        	NSNumber *lsNum = [prefs objectForKey:kISHideOnLSKey];
             if (lsNum.intValue == 1) {
                 hideOnLS = YES;
             } else {
@@ -119,8 +142,8 @@ static void ReloadSettingsOnStartup()
             }
         }
 
-        if ([settings objectForKey:kISHideBannersKey]) {
-        	NSNumber *bannerNum = [settings objectForKey:[settings objectForKey:kISHideBannersKey]];
+        if ([prefs objectForKey:kISHideBannersKey]) {
+        	NSNumber *bannerNum = [prefs objectForKey:kISHideBannersKey];
             if (bannerNum.intValue == 1) {
                 hideBanners = YES;
             } else {
@@ -128,8 +151,8 @@ static void ReloadSettingsOnStartup()
             }
         }
 
-        if ([settings objectForKey:kISClearBadgesKey]) {
-            NSNumber *badgesNum = [settings objectForKey:kISClearBadgesKey];
+        if ([prefs objectForKey:kISClearBadgesKey]) {
+            NSNumber *badgesNum = [prefs objectForKey:kISClearBadgesKey];
             if (badgesNum.intValue == 1) {
                 clearBadges = YES;
             } else {
@@ -138,7 +161,7 @@ static void ReloadSettingsOnStartup()
         }
     }
 
-    ISLog(@"RELOADSETTINGSONSTARTUP: %@",settings);
+    ISLog(@"RELOADSETTINGSONSTARTUP: %@",prefs);
 }
 
 
@@ -165,7 +188,11 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 
 	ISLog(@"CHATID: %@",chatId);
 
-	NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	if (!prefs) {
+		ReloadSettings();
+	}
+	NSDictionary *storedPrefs = prefs;
+
 	NSArray *muted;
 	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
 		muted = [storedPrefs objectForKey:kISMutedConversationsKey];
@@ -207,16 +234,25 @@ static void SaveConversation(CKConversation *conversation) {
 	}
 	[muted addObject:conversation.groupID];
 
-	[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
+	//[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
 
-	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
-	if (success) {
+	//BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
+	CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
+
+	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	if (temp.allKeys.count > 0) {
+		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
+	} else {
+		ISLog(@"PREFS FAILED TO SAVE");
+	}
+	/*if (success) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
 		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
-	}
+	}*/
 }
 
 static void RemoveConversation(CKConversation *conversation) {
@@ -229,22 +265,32 @@ static void RemoveConversation(CKConversation *conversation) {
 	}
 	[muted removeObject:conversation.groupID];
 
-	[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
+	//[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
 
-	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
-	if (success) {
+	//BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
+	CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
+
+	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	if (temp.allKeys.count > 0) {
+		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
+	} else {
+		ISLog(@"PREFS FAILED TO SAVE");
+	}
+
+	/*if (success) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
 		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
-	}
+	}*/
 
 }
 
 %ctor {
 	
-	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ReloadSettings, CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, kNilOptions);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ReloadSettings, CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 
 	ReloadSettingsOnStartup();
     
@@ -320,6 +366,7 @@ static void RemoveConversation(CKConversation *conversation) {
 
 %end
 
+/*
 %hook SBBulletinObserverViewController  
 
 -(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
@@ -333,6 +380,7 @@ static void RemoveConversation(CKConversation *conversation) {
 }
 
 %end
+*/
 
 //Blocks Banners
 %hook SBBulletinBannerController
