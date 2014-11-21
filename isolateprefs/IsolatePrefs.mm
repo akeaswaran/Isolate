@@ -17,7 +17,7 @@
         
         [self setTitle:@"Isolate"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Iso8 0.1"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Iso8 0.0.3"];
         [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"

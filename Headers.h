@@ -1,15 +1,4 @@
 //Headers.h
-@interface SBApplicationController
-+ (id)sharedInstance;
-- (id)applicationWithBundleIdentifier:(NSString*)id;
-- (id)applicationWithDisplayIdentifier:(NSString*)id;
-@end
-
-@interface SBApplicationIcon
-- (id)initWithApplication:(id)arg1;
-- (void)setBadge:(id)arg1;
-@end
-
 @interface BBBulletin
 @property(copy, nonatomic) NSString *sectionID;
 @property(retain, nonatomic) NSDictionary *context;

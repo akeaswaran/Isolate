@@ -5,7 +5,7 @@
 #define kISMutedConversationsKey @"mutedConvos"
 
 #ifdef DEBUG
-    #define ISLog(fmt, ...) NSLog((@"[Isolate] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+    #define ISLog(fmt, ...) NSLog((@"[Isol8] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
     #define ISLog(fmt, ...)
 #endif
