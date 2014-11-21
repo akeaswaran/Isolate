@@ -31,10 +31,6 @@
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3;
 @end
 
-@interface SBBulletinObserverViewController    
--(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3;
-@end
-
 //Blocks LS notifications
 @interface SBLockScreenNotificationListController
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item;

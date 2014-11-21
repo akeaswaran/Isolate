@@ -28,7 +28,8 @@ static BOOL _preventBadgeIncrement = NO;
 
 static void ReloadSettings()
 {
-	CFStringRef appID = CFSTR("com.akeaswaran.isolate");
+	
+	/*CFStringRef appID = CFSTR("com.akeaswaran.isolate");
 	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	if (!keyList) {
 	    ISLog(@"There's been an error getting the key list!");	     
@@ -37,9 +38,9 @@ static void ReloadSettings()
 	prefs = (__bridge NSDictionary*)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	if (!prefs) {
      ISLog(@"There's been an error getting the preferences dictionary!");
-	}
+	}*/
 
-  	//prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+  	prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
     if (prefs) {
         if ([prefs objectForKey:kISEnabledKey]) {
@@ -97,7 +98,7 @@ static void ReloadSettings()
 
 static void ReloadSettingsOnStartup()
 {
-   	CFStringRef appID = CFSTR("com.akeaswaran.isolate");
+   	/*CFStringRef appID = CFSTR("com.akeaswaran.isolate");
 	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	if (!keyList) {
 	    ISLog(@"There's been an error getting the key list!");	     
@@ -106,9 +107,9 @@ static void ReloadSettingsOnStartup()
 	prefs = (__bridge NSDictionary*)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	if (!prefs) {
      ISLog(@"There's been an error getting the preferences dictionary!");
-	}
+	}*/
 
-  	//prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+  	prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
     if (prefs) {
         if ([prefs objectForKey:kISEnabledKey]) {
@@ -188,10 +189,7 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 
 	ISLog(@"CHATID: %@",chatId);
 
-	if (!prefs) {
-		ReloadSettings();
-	}
-	NSDictionary *storedPrefs = prefs;
+	NSDictionary *storedPrefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
 	NSArray *muted;
 	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
@@ -234,25 +232,28 @@ static void SaveConversation(CKConversation *conversation) {
 	}
 	[muted addObject:conversation.groupID];
 
-	//[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
+	[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
 
-	//BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
-	CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
-
-	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
-	if (temp.allKeys.count > 0) {
-		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
-	} else {
-		ISLog(@"PREFS FAILED TO SAVE");
-	}
-	/*if (success) {
+	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
+	if (success) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
 		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
+	}
+
+	//CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
+
+	/*NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	if (temp.allKeys.count > 0) {
+		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
+	} else {
+		ISLog(@"PREFS FAILED TO SAVE");
 	}*/
+
+	
 }
 
 static void RemoveConversation(CKConversation *conversation) {
@@ -265,10 +266,18 @@ static void RemoveConversation(CKConversation *conversation) {
 	}
 	[muted removeObject:conversation.groupID];
 
-	//[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
+	[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
 
-	//BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
-	CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
+	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
+	if (success) {
+		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
+		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	} else {
+		ISLog(@"PREFS FAILED TO SAVE");
+	}
+
+	/*CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
 
 	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
@@ -276,21 +285,15 @@ static void RemoveConversation(CKConversation *conversation) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
-	}
-
-	/*if (success) {
-		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
-		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
-	} else {
-		ISLog(@"PREFS FAILED TO SAVE");
 	}*/
+
+	
 
 }
 
 %ctor {
 	
-	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ReloadSettings, CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ReloadSettings, CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, kNilOptions);
 
 	ReloadSettingsOnStartup();
     
@@ -329,7 +332,7 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBLockScreenNotificationListController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (!CancelBulletin(bulletin) && !hideOnLS) {
+	if (!hideOnLS && !CancelBulletin(bulletin) ) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		_preventBadgeIncrement = NO;
 		%orig;
@@ -340,7 +343,7 @@ static void RemoveConversation(CKConversation *conversation) {
 }
 
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
-	if (!CancelBulletin(item.activeBulletin) && !hideOnLS) {
+	if (!hideOnLS && !CancelBulletin(item.activeBulletin) ) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
 		_preventBadgeIncrement = NO;
 		%orig;
@@ -355,7 +358,7 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook BBServer
 
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3 {
-	if (!CancelBulletin(bulletin) && !hideInNC) {
+	if (!hideInNC && !CancelBulletin(bulletin)) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		_preventBadgeIncrement = NO;
 		%orig;
@@ -366,27 +369,11 @@ static void RemoveConversation(CKConversation *conversation) {
 
 %end
 
-/*
-%hook SBBulletinObserverViewController  
-
--(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
-	if (!CancelBulletin(bulletinInfo.representedBulletin) && !hideInNC) {
-		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinInfo.representedBulletin);
-		_preventBadgeIncrement = NO;
-		%orig;
-	} else {
-		ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
-	}
-}
-
-%end
-*/
-
 //Blocks Banners
 %hook SBBulletinBannerController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (!CancelBulletin(bulletin) && !hideBanners) {
+	if (!hideBanners && !CancelBulletin(bulletin) ) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		_preventBadgeIncrement = NO;
 		%orig;
@@ -401,7 +388,7 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBIcon 
 
 -(void)setBadge:(NSString*)arg1 {
-	if (enabled && clearBadges && _preventBadgeIncrement && [[self applicationBundleID] isEqual:@"com.apple.MobileSMS"]) {
+	if (enabled && [[self applicationBundleID] isEqual:@"com.apple.MobileSMS"] && clearBadges && _preventBadgeIncrement) {
 		ISLog(@"BLOCKING BADGE FOR MESSAGES");
 	} else {
 		%orig;
