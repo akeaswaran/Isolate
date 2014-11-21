@@ -3,9 +3,6 @@
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
 #define kISMutedConversationsKey @"mutedConvos"
-#define kISHideInNCKey @"hideInNC"
-#define kISHideBannersKey @"hideBanners"
-#define kISHideOnLSKey @"hideOnLS"
 #define kISClearBadgesKey @"clearBadges"
 
 #ifdef DEBUG
@@ -15,154 +12,47 @@
 #endif
 
 static BOOL enabled = YES;
-static BOOL hideInNC = YES;
-static BOOL hideOnLS = YES;
-static BOOL hideBanners = YES;
 static BOOL clearBadges = NO;
 static NSMutableArray *mutedConversations;
-static NSDictionary *prefs;
-
-static BOOL _preventBadgeIncrement = NO;
 
 #pragma mark - Static Methods
 
 static void ReloadSettings()
 {
-	
-	/*CFStringRef appID = CFSTR("com.akeaswaran.isolate");
-	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!keyList) {
-	    ISLog(@"There's been an error getting the key list!");	     
-	    return;
-	}
-	prefs = (__bridge NSDictionary*)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!prefs) {
-     ISLog(@"There's been an error getting the preferences dictionary!");
-	}*/
+  	NSDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
-  	prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-
-    if (prefs) {
-        if ([prefs objectForKey:kISEnabledKey]) {
-            NSNumber *enabledNum = [prefs objectForKey:kISEnabledKey];
-            if (enabledNum.intValue == 1) {
-                enabled = YES;
-            } else {
-                enabled = NO;
-            }
+    if (settings) {
+        if ([settings objectForKey:kISEnabledKey]) {
+            enabled = [[settings objectForKey:kISEnabledKey] boolValue];
         }
-
-        if ([prefs objectForKey:kISMutedConversationsKey]) {
-        	mutedConversations = [NSMutableArray arrayWithArray:[prefs objectForKey:kISMutedConversationsKey]];
+        if ([settings objectForKey:kISMutedConversationsKey]) {
+        	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
         }
-
-        if ([prefs objectForKey:kISHideInNCKey]) {
-        	NSNumber *ncNum = [prefs objectForKey:kISHideInNCKey];
-            if (ncNum.intValue == 1) {
-                hideInNC = YES;
-            } else {
-                hideInNC = NO;
-            }
-        }
-
-        if ([prefs objectForKey:kISHideOnLSKey]) {
-        	NSNumber *lsNum = [prefs objectForKey:kISHideOnLSKey];
-            if (lsNum.intValue == 1) {
-                hideOnLS = YES;
-            } else {
-                hideOnLS = NO;
-            }
-        }
-
-        if ([prefs objectForKey:kISHideBannersKey]) {
-        	NSNumber *bannerNum = [prefs objectForKey:kISHideBannersKey];
-            if (bannerNum.intValue == 1) {
-                hideBanners = YES;
-            } else {
-                hideBanners = NO;
-            }
-        }
-
-        if ([prefs objectForKey:kISClearBadgesKey]) {
-            NSNumber *badgesNum = [prefs objectForKey:kISClearBadgesKey];
-            if (badgesNum.intValue == 1) {
-                clearBadges = YES;
-            } else {
-                clearBadges = NO;
-            }
+        if ([settings objectForKey:kISClearBadgesKey]) {
+        	clearBadges = [[settings objectForKey:kISClearBadgesKey] boolValue];
         }
     }
 
-    ISLog(@"RELOADSETTINGS: %@",prefs);
+    ISLog(@"RELOADSETTINGS: %@",settings);
 }
 
 static void ReloadSettingsOnStartup()
 {
-   	/*CFStringRef appID = CFSTR("com.akeaswaran.isolate");
-	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!keyList) {
-	    ISLog(@"There's been an error getting the key list!");	     
-	    return;
-	}
-	prefs = (__bridge NSDictionary*)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
-	if (!prefs) {
-     ISLog(@"There's been an error getting the preferences dictionary!");
-	}*/
+   	NSDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
-  	prefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-
-    if (prefs) {
-        if ([prefs objectForKey:kISEnabledKey]) {
-            NSNumber *enabledNum = [prefs objectForKey:kISEnabledKey];
-            if (enabledNum.intValue == 1) {
-                enabled = YES;
-            } else {
-                enabled = NO;
-            }
+    if (settings) {
+        if ([settings objectForKey:kISEnabledKey]) {
+            enabled = [[settings objectForKey:kISEnabledKey] boolValue];
         }
-
-        if ([prefs objectForKey:kISMutedConversationsKey]) {
-        	mutedConversations = [NSMutableArray arrayWithArray:[prefs objectForKey:kISMutedConversationsKey]];
+        if ([settings objectForKey:kISMutedConversationsKey]) {
+        	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
         }
-
-        if ([prefs objectForKey:kISHideInNCKey]) {
-        	NSNumber *ncNum = [prefs objectForKey:kISHideInNCKey];
-            if (ncNum.intValue == 1) {
-                hideInNC = YES;
-            } else {
-                hideInNC = NO;
-            }
-        }
-
-        if ([prefs objectForKey:kISHideOnLSKey]) {
-        	NSNumber *lsNum = [prefs objectForKey:kISHideOnLSKey];
-            if (lsNum.intValue == 1) {
-                hideOnLS = YES;
-            } else {
-                hideOnLS = NO;
-            }
-        }
-
-        if ([prefs objectForKey:kISHideBannersKey]) {
-        	NSNumber *bannerNum = [prefs objectForKey:kISHideBannersKey];
-            if (bannerNum.intValue == 1) {
-                hideBanners = YES;
-            } else {
-                hideBanners = NO;
-            }
-        }
-
-        if ([prefs objectForKey:kISClearBadgesKey]) {
-            NSNumber *badgesNum = [prefs objectForKey:kISClearBadgesKey];
-            if (badgesNum.intValue == 1) {
-                clearBadges = YES;
-            } else {
-                clearBadges = NO;
-            }
+        if ([settings objectForKey:kISClearBadgesKey]) {
+        	clearBadges = [[settings objectForKey:kISClearBadgesKey] boolValue];
         }
     }
 
-    ISLog(@"RELOADSETTINGSONSTARTUP: %@",prefs);
+    ISLog(@"RELOADSETTINGSONSTARTUP: %@",settings);
 }
 
 
@@ -189,8 +79,7 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 
 	ISLog(@"CHATID: %@",chatId);
 
-	NSDictionary *storedPrefs = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-
+	NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 	NSArray *muted;
 	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
 		muted = [storedPrefs objectForKey:kISMutedConversationsKey];
@@ -206,19 +95,16 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 			if ([groupID isEqualToString:chatId]) {
 				ISLog(@"MUTING CONVERSATION WITH GROUP ID: %@",groupID);
 				if (clearBadges) {
-					_preventBadgeIncrement = YES;
-				} else {
-					_preventBadgeIncrement = NO;
-				}
+   					SBApplicationIcon *appIcon = [[%c(SBApplicationIcon) alloc] initWithApplication:[[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:bulletin.sectionID]];
+    				[appIcon setBadge:nil];
+  				}
 				return YES;
 			}
 		}
 	} else {
 		ISLog(@"DISABLED, INVALID, OR NOT GROUP MESSAGE; SO NOT MUTING CONVERSATION");
-		_preventBadgeIncrement = NO;
 		return NO;
 	}
-	_preventBadgeIncrement = NO;
 	return NO;
 }
 
@@ -242,18 +128,6 @@ static void SaveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
 	}
-
-	//CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
-
-	/*NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
-	if (temp.allKeys.count > 0) {
-		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
-	} else {
-		ISLog(@"PREFS FAILED TO SAVE");
-	}*/
-
-	
 }
 
 static void RemoveConversation(CKConversation *conversation) {
@@ -276,18 +150,6 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
 	}
-
-	/*CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate") );
-
-	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
-	if (temp.allKeys.count > 0) {
-		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
-	} else {
-		ISLog(@"PREFS FAILED TO SAVE");
-	}*/
-
-	
 
 }
 
@@ -332,20 +194,17 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBLockScreenNotificationListController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (!hideOnLS && !CancelBulletin(bulletin) ) {
+	if (!CancelBulletin(bulletin)) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
-		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
-
 	}
 }
 
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
-	if (!hideOnLS && !CancelBulletin(item.activeBulletin) ) {
+	if (!CancelBulletin(item.activeBulletin)) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
-		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
@@ -358,12 +217,24 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook BBServer
 
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3 {
-	if (!hideInNC && !CancelBulletin(bulletin)) {
+	if (!CancelBulletin(bulletin)) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
-		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
+	}
+}
+
+%end
+
+%hook SBBulletinObserverViewController  
+
+-(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
+	if (!CancelBulletin(bulletinInfo.representedBulletin)) {
+		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinInfo.representedBulletin);
+		%orig;
+	} else {
+		ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
 	}
 }
 
@@ -373,25 +244,11 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBBulletinBannerController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (!hideBanners && !CancelBulletin(bulletin) ) {
+	if (!CancelBulletin(bulletin)) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
-		_preventBadgeIncrement = NO;
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
-	}
-}
-
-%end
-
-//Blocks Badges
-%hook SBIcon 
-
--(void)setBadge:(NSString*)arg1 {
-	if (enabled && [[self applicationBundleID] isEqual:@"com.apple.MobileSMS"] && clearBadges && _preventBadgeIncrement) {
-		ISLog(@"BLOCKING BADGE FOR MESSAGES");
-	} else {
-		%orig;
 	}
 }
 

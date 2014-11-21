@@ -1,8 +1,13 @@
 //Headers.h
+@interface SBApplicationController
++ (id)sharedInstance;
+- (id)applicationWithBundleIdentifier:(NSString*)id;
+- (id)applicationWithDisplayIdentifier:(NSString*)id;
+@end
 
-@interface SBIcon
--(void)setBadge:(NSString*)arg1;
--(id)applicationBundleID;
+@interface SBApplicationIcon
+- (id)initWithApplication:(id)arg1;
+- (void)setBadge:(id)arg1;
 @end
 
 @interface BBBulletin
@@ -29,6 +34,10 @@
 //Blocks NC Notifications
 @interface BBServer
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3;
+@end
+
+@interface SBBulletinObserverViewController    
+-(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3;
 @end
 
 //Blocks LS notifications
