@@ -26,9 +26,9 @@ static void ReloadSettings()
         		enabled = YES;
         	} else {
         		enabled = NO;
-        	}
-            
+        	}    
         }
+
         if ([settings objectForKey:kISMutedConversationsKey]) {
         	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
         }
@@ -43,13 +43,14 @@ static void ReloadSettingsOnStartup()
 
     if (settings) {
         if ([settings objectForKey:kISEnabledKey]) {
-            if (enabledNum.intValue == 1) {
+            NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+        	if (enabledNum.intValue == 1) {
         		enabled = YES;
         	} else {
         		enabled = NO;
         	}
-            
         }
+
         if ([settings objectForKey:kISMutedConversationsKey]) {
         	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
         }
