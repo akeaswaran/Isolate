@@ -1,10 +1,4 @@
 //Headers.h
-
-@interface SBIcon
--(void)setBadge:(NSString*)arg1;
--(id)applicationBundleID;
-@end
-
 @interface BBBulletin
 @property(copy, nonatomic) NSString *sectionID;
 @property(retain, nonatomic) NSDictionary *context;
