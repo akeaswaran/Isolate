@@ -3,7 +3,6 @@
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
 #define kISMutedConversationsKey @"mutedConvos"
-#define kISClearBadgesKey @"clearBadges"
 
 #ifdef DEBUG
     #define ISLog(fmt, ...) NSLog((@"[Isolate] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -12,24 +11,26 @@
 #endif
 
 static BOOL enabled = YES;
-static BOOL clearBadges = NO;
 static NSMutableArray *mutedConversations;
 
 #pragma mark - Static Methods
 
 static void ReloadSettings()
 {
-  	NSDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+  	NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
     if (settings) {
         if ([settings objectForKey:kISEnabledKey]) {
-            enabled = [[settings objectForKey:kISEnabledKey] boolValue];
+        	NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+        	if (enabledNum.intValue == 1) {
+        		enabled = YES;
+        	} else {
+        		enabled = NO;
+        	}
+            
         }
         if ([settings objectForKey:kISMutedConversationsKey]) {
         	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
-        }
-        if ([settings objectForKey:kISClearBadgesKey]) {
-        	clearBadges = [[settings objectForKey:kISClearBadgesKey] boolValue];
         }
     }
 
@@ -38,17 +39,19 @@ static void ReloadSettings()
 
 static void ReloadSettingsOnStartup()
 {
-   	NSDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+   	NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 
     if (settings) {
         if ([settings objectForKey:kISEnabledKey]) {
-            enabled = [[settings objectForKey:kISEnabledKey] boolValue];
+            if (enabledNum.intValue == 1) {
+        		enabled = YES;
+        	} else {
+        		enabled = NO;
+        	}
+            
         }
         if ([settings objectForKey:kISMutedConversationsKey]) {
         	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
-        }
-        if ([settings objectForKey:kISClearBadgesKey]) {
-        	clearBadges = [[settings objectForKey:kISClearBadgesKey] boolValue];
         }
     }
 
@@ -94,10 +97,6 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 		for (NSString *groupID in muted) {
 			if ([groupID isEqualToString:chatId]) {
 				ISLog(@"MUTING CONVERSATION WITH GROUP ID: %@",groupID);
-				if (clearBadges) {
-   					SBApplicationIcon *appIcon = [[%c(SBApplicationIcon) alloc] initWithApplication:[[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:bulletin.sectionID]];
-    				[appIcon setBadge:nil];
-  				}
 				return YES;
 			}
 		}
