@@ -12,51 +12,69 @@
 
 static BOOL enabled = YES;
 static NSMutableArray *mutedConversations;
+static NSDictionary *preferences;
 
 #pragma mark - Static Methods
 
-static void ReloadSettings()
-{
-  	NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+static void ReloadSettings() {
+	preferences = nil;
+	CFStringRef appID = CFSTR("com.akeaswaran.isolate");
+	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!keyList) {
+		ISLog(@"There's been an error getting the key list!");
+		return;
+	}
+	preferences = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!preferences) {
+		ISLog(@"There's been an error getting the preferences dictionary!");
+	}
+	CFRelease(keyList);
 
-    if (settings) {
-        if ([settings objectForKey:kISEnabledKey]) {
-        	NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
-        	if (enabledNum.intValue == 1) {
-        		enabled = YES;
-        	} else {
-        		enabled = NO;
-        	}    
-        }
-
-        if ([settings objectForKey:kISMutedConversationsKey]) {
-        	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
-        }
+	if ([preferences objectForKey:kISEnabledKey]) {
+    	NSNumber *enabledNum = [preferences objectForKey:kISEnabledKey];
+    	if (enabledNum.intValue == 1) {
+    		enabled = YES;
+    	} else {
+    		enabled = NO;
+    	}    
     }
 
-    ISLog(@"RELOADSETTINGS: %@",settings);
+    if ([preferences objectForKey:kISMutedConversationsKey]) {
+    	mutedConversations = [NSMutableArray arrayWithArray:[preferences objectForKey:kISMutedConversationsKey]];
+    }
+
+    ISLog(@"RELOADSETTINGS: %@",preferences);
 }
 
 static void ReloadSettingsOnStartup()
 {
-   	NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+   	preferences = nil;
+	CFStringRef appID = CFSTR("com.akeaswaran.isolate");
+	CFArrayRef keyList = CFPreferencesCopyKeyList(appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!keyList) {
+		ISLog(@"There's been an error getting the key list!");
+		return;
+	}
+	preferences = (__bridge NSDictionary *)CFPreferencesCopyMultiple(keyList, appID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (!preferences) {
+		ISLog(@"There's been an error getting the preferences dictionary!");
+	}
+	CFRelease(keyList);
 
-    if (settings) {
-        if ([settings objectForKey:kISEnabledKey]) {
-            NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
-        	if (enabledNum.intValue == 1) {
-        		enabled = YES;
-        	} else {
-        		enabled = NO;
-        	}
-        }
-
-        if ([settings objectForKey:kISMutedConversationsKey]) {
-        	mutedConversations = [NSMutableArray arrayWithArray:[settings objectForKey:kISMutedConversationsKey]];
-        }
+	if ([preferences objectForKey:kISEnabledKey]) {
+    	NSNumber *enabledNum = [preferences objectForKey:kISEnabledKey];
+    	if (enabledNum.intValue == 1) {
+    		enabled = YES;
+    	} else {
+    		enabled = NO;
+    	}    
     }
 
-    ISLog(@"RELOADSETTINGSONSTARTUP: %@",settings);
+    if ([preferences objectForKey:kISMutedConversationsKey]) {
+    	mutedConversations = [NSMutableArray arrayWithArray:[preferences objectForKey:kISMutedConversationsKey]];
+    }
+
+    ISLog(@"RELOADSETTINGS: %@",preferences);
 }
 
 
@@ -83,13 +101,14 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 
 	ISLog(@"CHATID: %@",chatId);
 
-	NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	/*NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 	NSArray *muted;
 	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
 		muted = [storedPrefs objectForKey:kISMutedConversationsKey];
 	} else {
 		muted = [NSArray array];
-	}
+	}*/
+	NSArray *muted = (__bridge NSArray*)CFPreferencesCopyAppValue ( CFSTR("mutedConvos"), CFSTR("com.akeaswaran.isolate") );
 
     ISLog(@"MUTED CHAT IDs: %@",muted);
 
@@ -109,16 +128,18 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
 }
 
 static void SaveConversation(CKConversation *conversation) {
-	NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	/*NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 	NSMutableArray *muted;
 	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
 		muted = [NSMutableArray arrayWithArray:[storedPrefs objectForKey:kISMutedConversationsKey]];
 	} else {
 		muted = [NSMutableArray array];
-	}
+	}*/
+
+	NSMutableArray *muted = [NSMutableArray arrayWithArray:(__bridge NSArray*)CFPreferencesCopyAppValue ( CFSTR("mutedConvos"), CFSTR("com.akeaswaran.isolate") )];
 	[muted addObject:conversation.groupID];
 
-	[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
+	/*[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
 
 	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
 	if (success) {
@@ -127,26 +148,46 @@ static void SaveConversation(CKConversation *conversation) {
 		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
+	}*/
+
+	CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate"));	
+	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	if (temp.allKeys.count > 0 && [temp[kISMutedConversationsKey] count] == muted.count) {
+		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
+	} else {
+		ISLog(@"PREFS FAILED TO SAVE");
 	}
 }
 
 static void RemoveConversation(CKConversation *conversation) {
-	NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	/*NSMutableDictionary *storedPrefs = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 	NSMutableArray *muted;
 	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
 		muted = [NSMutableArray arrayWithArray:[storedPrefs objectForKey:kISMutedConversationsKey]];
 	} else {
 		muted = [NSMutableArray array];
-	}
+	}*/
+
+	NSMutableArray *muted = [NSMutableArray arrayWithArray:(__bridge NSArray*)CFPreferencesCopyAppValue ( CFSTR("mutedConvos"), CFSTR("com.akeaswaran.isolate") )];
 	[muted removeObject:conversation.groupID];
 
-	[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
+	/*[storedPrefs setObject:muted forKey:kISMutedConversationsKey];
 
 	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
 	if (success) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
 		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
 		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	} else {
+		ISLog(@"PREFS FAILED TO SAVE");
+	}*/
+
+	CFPreferencesSetAppValue ( CFSTR("mutedConvos"), (__bridge CFArrayRef)muted, CFSTR("com.akeaswaran.isolate"));	
+	NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+	ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+	if (temp.allKeys.count > 0 && [temp[kISMutedConversationsKey] count] == muted.count) {
+		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
 	}
@@ -169,17 +210,20 @@ static void RemoveConversation(CKConversation *conversation) {
 	%orig;
 	if(enabled && self.conversation.recipients.count > 1) {
 		if (!mutedConversations) {
-			NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-			mutedConversations = temp[kISMutedConversationsKey];
+			//NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+			//mutedConversations = temp[kISMutedConversationsKey];
+			mutedConversations = [NSMutableArray arrayWithArray:(__bridge NSArray*)CFPreferencesCopyAppValue ( CFSTR("mutedConvos"), CFSTR("com.akeaswaran.isolate") )];
 		}
 
 		ISLog(@"ENABLED AND TRYING TO CHANGE MUTE STATUS FOR VALID GROUP MESSAGE");
 		if (arg1.on) {
+			ISLog(@"SWITCH TURNED ON; SAVING GROUPID IF POSSIBLE");
 			if (![mutedConversations containsObject:self.conversation.groupID]) {
 				ISLog(@"ADDING CONVERSATION TO MUTED WITH GROUPID: %@",self.conversation.groupID);
 				SaveConversation(self.conversation);
 			}
 		} else {
+			ISLog(@"SWITCH TURNED OFF; REMOVING GROUPID IF POSSIBLE");
 			if ([mutedConversations containsObject:self.conversation.groupID]) {
 				ISLog(@"REMOVING CONVERSATION TO MUTED WITH GROUPID: %@",self.conversation.groupID);
 				RemoveConversation(self.conversation);
