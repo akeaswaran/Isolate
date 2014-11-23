@@ -17,7 +17,7 @@
         
         [self setTitle:@"Isolate"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Iso8 0.0.3"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Isol8 0.0.3"];
         [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
@@ -59,25 +59,39 @@
 
 - (id)getValueForSpecifier:(PSSpecifier *)specifier
 {
-    NSMutableDictionary *settings = [[NSMutableDictionary alloc] initWithContentsOfFile:kISSettingsPath];
+    /*NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
     
     if ([specifier.identifier isEqualToString:kISEnabledKey]) {
         if (settings) {
             if ([settings objectForKey:kISEnabledKey]) {
-                if ([[settings objectForKey:kISEnabledKey] boolValue]) {
+                NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
+                if ([enabledNum intValue] == 1) {
                     return [NSNumber numberWithBool:YES];
+                } else {
+                    return [NSNumber numberWithBool:NO];
                 }
             } 
         }
     }
     
+    return [NSNumber numberWithBool:NO];*/
+
+    NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
+    if (settings[specifier.identifier]) {
+        NSNumber *settingEnabled = settings[specifier.identifier];
+        if (settingEnabled.intValue == 1) {
+            return [NSNumber numberWithBool:YES];
+        } else {
+            return [NSNumber numberWithBool:NO];
+        }
+    }
     return [NSNumber numberWithBool:NO];
 }
 
 - (void)setValue:(id)value forSpecifier:(PSSpecifier *)specifier
 {
-    if ([specifier.identifier isEqualToString:kISEnabledKey]) {
-        if ([value boolValue]) {
+    /*if ([specifier.identifier isEqualToString:kISEnabledKey]) {
+        if ([value intValue] == 1) {
             NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
             [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
             [defaults setObject:value forKey:kISEnabledKey];
@@ -91,7 +105,14 @@
         
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, TRUE);
         
-    }
+    }*/
+
+    NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
+    [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
+    [defaults setObject:value forKey:specifier.identifier];
+    [defaults writeToFile:kISSettingsPath atomically:YES];
+
+    CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, YES);
 }
 
 - (void)openGithub
