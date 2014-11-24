@@ -3,6 +3,9 @@
 
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
+#define kISHideInNCKey @"mutedNC"
+#define kISHideOnLSKey @"mutedLS"
+#define kISHideBannersKey @"mutedBanners"
 
 @interface IsolatePrefsListController: PSListController {
 }
@@ -15,7 +18,7 @@
     if (_specifiers == nil) {
         NSMutableArray *specifiers = [[NSMutableArray alloc] init];
         
-        [self setTitle:@"Isolate"];
+        [self setTitle:@"Isol8"];
         
         PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Isol8 0.1"];
         [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
@@ -30,7 +33,39 @@
         [enabled setIdentifier:kISEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
+        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Options"];
+        
+        PSSpecifier *ncEnabled = [PSSpecifier preferenceSpecifierNamed:@"Mute In Notification Center"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [ncEnabled setIdentifier:kISHideInNCKey];
+        [ncEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *lsEnabled = [PSSpecifier preferenceSpecifierNamed:@"Mute On Lock Screen"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [lsEnabled setIdentifier:kISHideOnLSKey];
+        [lsEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *bannerEnabled = [PSSpecifier preferenceSpecifierNamed:@"Mute Banners"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [bannerEnabled setIdentifier:kISHideBannersKey];
+        [bannerEnabled setProperty:@(YES) forKey:@"enabled"];
+
+        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
         [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
@@ -48,7 +83,13 @@
 
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
+
         [specifiers addObject:secondGroup];
+        [specifiers addObject:ncEnabled];
+        [specifiers addObject:lsEnabled];
+        [specifiers addObject:bannerEnabled];
+
+        [specifiers addObject:thirdGroup];
         [specifiers addObject:github];
         
         _specifiers = specifiers;
@@ -73,10 +114,14 @@
 
 - (void)setValue:(id)value forSpecifier:(PSSpecifier *)specifier
 {
-
     NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
     [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
     [defaults setObject:value forKey:specifier.identifier];
+    if ([specifier.identifier isEqual:kISEnabledKey]) {
+        [defaults setObject:value forKey:kISHideInNCKey];
+        [defaults setObject:value forKey:kISHideOnLSKey];
+        [defaults setObject:value forKey:kISHideBannersKey];
+    }
     [defaults writeToFile:kISSettingsPath atomically:YES];
 
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, YES);
