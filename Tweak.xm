@@ -15,7 +15,7 @@ static BOOL enabled;
 #pragma mark - Static Methods
 
 static void ReloadSettings() {
-    NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
+	NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
 
 	NSNumber *enabledNum = preferences[kISEnabledKey];
 	enabled = enabledNum ? [enabledNum boolValue] : 1;
@@ -23,8 +23,7 @@ static void ReloadSettings() {
 	ISLog(@"RELOADSETTINGS: %@",preferences);
 }
 
-static void ReloadSettingsOnStartup()
-{
+static void ReloadSettingsOnStartup() {
     NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
 
 	NSNumber *enabledNum = preferences[kISEnabledKey];
@@ -102,6 +101,7 @@ static void SaveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
 	}
+
 }
 
 static void RemoveConversation(CKConversation *conversation) {
@@ -142,6 +142,7 @@ static void RemoveConversation(CKConversation *conversation) {
 - (void)_muteSwitchValueChanged:(UISwitch*)arg1 {
 	%orig;
 	if(enabled && self.conversation.recipients.count > 1) {
+
 		NSDictionary *storedPrefs = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
 		NSArray *mutedConversations;
 		if([storedPrefs objectForKey:kISMutedConversationsKey]) {
@@ -180,9 +181,6 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
-
-	ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",bulletin);
-	%orig;
 	
 }
 
@@ -194,8 +192,6 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
 	}
-	ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",item.activeBulletin);
-	%orig;
 	
 }
 
@@ -212,9 +208,6 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
-	ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletin);
-	%orig;
-
 }
 
 %end
@@ -229,8 +222,6 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
 	}
-	ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletinInfo.representedBulletin);
-	%orig;
 	
 }
 
@@ -247,8 +238,6 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
-	ISLog(@"DID NOT MUTE BULLETIN BC BANNERS ARE ALLOWED: %@",bulletin);
-	%orig;
 	
 }
 

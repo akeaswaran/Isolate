@@ -45,13 +45,11 @@
         [github setIdentifier:@"github"];
         [github setProperty:@(YES) forKey:@"enabled"];
         [github setProperty:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/IsolatePrefs.bundle/github.png"] forKey:@"iconImage"];
-
+        
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
-
         [specifiers addObject:thirdGroup];
         [specifiers addObject:github];
-        
         _specifiers = specifiers;
     }
     

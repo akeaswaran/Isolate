@@ -5,7 +5,7 @@ Version: 0.1
 Architecture: iphoneos-arm
 Description: How iOS 8's group message DND mode was supposed to be implemented.
 Depiction: http://akeaswaran.github.io/repo/depictions/isol8.html
-Maintainer: Akshay Easwaran
-Author: Akshay Easwaran
+Maintainer: Akshay Easwaran <shivadoc15@gmail.com>
+Author: Akshay Easwaran <shivadoc15@gmail.com>
 Section: Tweaks
 Icon: file:///Library/PreferenceBundles/IsolatePrefs.bundle/IsolatePrefs@2x.png
