@@ -5,6 +5,7 @@
 #define kISEnabledKey @"tweakEnabled"
 
 @interface IsolatePrefsListController: PSListController {
+    UIWindow *settingsView;
 }
 @end
 
@@ -83,6 +84,18 @@
 - (void)openGithub
 {
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran"]];
+}
+
+-(void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    settingsView = [[UIApplication sharedApplication] keyWindow];
+    settingsView.tintColor = [UIColor greenColor];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    settingsView = [[UIApplication sharedApplication] keyWindow];
+    settingsView.tintColor = nil;
 }
 
 @end
