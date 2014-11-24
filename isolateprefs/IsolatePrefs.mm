@@ -17,7 +17,7 @@
         
         [self setTitle:@"Isolate"];
         
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Isol8 0.0.3"];
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Isol8 0.1"];
         [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
         
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
@@ -30,7 +30,7 @@
         [enabled setIdentifier:kISEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
+        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
         [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
         
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
@@ -45,10 +45,10 @@
         [github setIdentifier:@"github"];
         [github setProperty:@(YES) forKey:@"enabled"];
         [github setProperty:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/IsolatePrefs.bundle/github.png"] forKey:@"iconImage"];
-        
+
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
-        [specifiers addObject:thirdGroup];
+        [specifiers addObject:secondGroup];
         [specifiers addObject:github];
         
         _specifiers = specifiers;
@@ -59,23 +59,6 @@
 
 - (id)getValueForSpecifier:(PSSpecifier *)specifier
 {
-    /*NSDictionary *settings = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-    
-    if ([specifier.identifier isEqualToString:kISEnabledKey]) {
-        if (settings) {
-            if ([settings objectForKey:kISEnabledKey]) {
-                NSNumber *enabledNum = [settings objectForKey:kISEnabledKey];
-                if ([enabledNum intValue] == 1) {
-                    return [NSNumber numberWithBool:YES];
-                } else {
-                    return [NSNumber numberWithBool:NO];
-                }
-            } 
-        }
-    }
-    
-    return [NSNumber numberWithBool:NO];*/
-
     NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
     if (settings[specifier.identifier]) {
         NSNumber *settingEnabled = settings[specifier.identifier];
@@ -90,22 +73,6 @@
 
 - (void)setValue:(id)value forSpecifier:(PSSpecifier *)specifier
 {
-    /*if ([specifier.identifier isEqualToString:kISEnabledKey]) {
-        if ([value intValue] == 1) {
-            NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
-            [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
-            [defaults setObject:value forKey:kISEnabledKey];
-            [defaults writeToFile:kISSettingsPath atomically:YES];
-        } else {
-            NSMutableDictionary *defaults = [[NSMutableDictionary alloc] init];
-            [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
-            [defaults setObject:value forKey:kISEnabledKey];
-            [defaults writeToFile:kISSettingsPath atomically:YES];
-        }
-        
-        CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, TRUE);
-        
-    }*/
 
     NSMutableDictionary *defaults = [NSMutableDictionary dictionary];
     [defaults addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath]];
