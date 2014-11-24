@@ -3,9 +3,6 @@
 #define kISSettingsPath @"/User/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
 #define kISMutedConversationsKey @"mutedConvos"
-#define kISHideInNCKey @"mutedNC"
-#define kISHideOnLSKey @"mutedLS"
-#define kISHideBannersKey @"mutedBanners"
 
 #ifdef DEBUG
     #define ISLog(fmt, ...) NSLog((@"[Isol8] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
@@ -14,9 +11,6 @@
 #endif
 
 static BOOL enabled;
-static BOOL hideInNC;
-static BOOL hideOnLS;
-static BOOL hideBanners;
 
 #pragma mark - Static Methods
 
@@ -25,15 +19,6 @@ static void ReloadSettings() {
 
 	NSNumber *enabledNum = preferences[kISEnabledKey];
 	enabled = enabledNum ? [enabledNum boolValue] : 1;
-
-	NSNumber *hideNCNum = preferences[kISHideInNCKey];
-	hideInNC = hideNCNum ? [hideNCNum boolValue] : 1;
-
-	NSNumber *hideLSNum = preferences[kISHideOnLSKey];
-	hideOnLS = hideLSNum ? [hideLSNum boolValue] : 1;
-
-	NSNumber *hideBannerNum = preferences[kISHideBannersKey];
-	hideBanners = hideBannerNum ? [hideBannerNum boolValue] : 1;
 
 	ISLog(@"RELOADSETTINGS: %@",preferences);
 }
@@ -44,15 +29,6 @@ static void ReloadSettingsOnStartup()
 
 	NSNumber *enabledNum = preferences[kISEnabledKey];
 	enabled = enabledNum ? [enabledNum boolValue] : 1;
-
-	NSNumber *hideNCNum = preferences[kISHideInNCKey];
-	hideInNC = hideNCNum ? [hideNCNum boolValue] : 1;
-
-	NSNumber *hideLSNum = preferences[kISHideOnLSKey];
-	hideOnLS = hideLSNum ? [hideLSNum boolValue] : 1;
-
-	NSNumber *hideBannerNum = preferences[kISHideBannersKey];
-	hideBanners = hideBannerNum ? [hideBannerNum boolValue] : 1;
 
 	ISLog(@"RELOADSETTINGSONSTARTUP: %@",preferences);
 }
@@ -197,31 +173,30 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBLockScreenNotificationListController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (hideOnLS) {
-		if (!CancelBulletin(bulletin)) {
-			ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
-			%orig;
-		} else {
-			ISLog(@"MUTED BULLETIN: %@",bulletin);
-		}
-	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",bulletin);
+	
+	if (!CancelBulletin(bulletin)) {
+		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
+	} else {
+		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
+
+	ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",bulletin);
+	%orig;
+	
 }
 
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
-	if (hideOnLS) {
-		if (!CancelBulletin(item.activeBulletin)) {
-			ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
-			%orig;
-		} else {
-			ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
-		}
-	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",item.activeBulletin);
+	
+	if (!CancelBulletin(item.activeBulletin)) {
+		ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
 		%orig;
+	} else {
+		ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
 	}
+	ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",item.activeBulletin);
+	%orig;
+	
 }
 
 %end
@@ -230,17 +205,16 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook BBServer
 
 - (void)publishBulletin:(BBBulletin*)bulletin destinations:(NSUInteger)arg2 alwaysToLockScreen:(BOOL)arg3 {
-	if (hideInNC) {
-		if (!CancelBulletin(bulletin)) {
-			ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
-			%orig;
-		} else {
-			ISLog(@"MUTED BULLETIN: %@",bulletin);
-		}
-	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletin);
+
+	if (!CancelBulletin(bulletin)) {
+		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
+	} else {
+		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
+	ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletin);
+	%orig;
+
 }
 
 %end
@@ -248,17 +222,16 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBBulletinObserverViewController  
 
 -(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
-	if (hideInNC) {
-		if (!CancelBulletin(bulletinInfo.representedBulletin)) {
-			ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinInfo.representedBulletin);
-			%orig;
-		} else {
-			ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
-		}
-	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletinInfo.representedBulletin);
+
+	if (!CancelBulletin(bulletinInfo.representedBulletin)) {
+		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinInfo.representedBulletin);
 		%orig;
+	} else {
+		ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
 	}
+	ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletinInfo.representedBulletin);
+	%orig;
+	
 }
 
 %end
@@ -267,17 +240,16 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBBulletinBannerController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	if (hideBanners) {
-		if (!CancelBulletin(bulletin)) {
-			ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
-			%orig;
-		} else {
-			ISLog(@"MUTED BULLETIN: %@",bulletin);
-		}
-	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC BANNERS ARE ALLOWED: %@",bulletin);
+
+	if (!CancelBulletin(bulletin)) {
+		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
+	} else {
+		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
+	ISLog(@"DID NOT MUTE BULLETIN BC BANNERS ARE ALLOWED: %@",bulletin);
+	%orig;
+	
 }
 
 %end
