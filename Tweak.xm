@@ -212,14 +212,14 @@ static void RemoveConversation(CKConversation *conversation) {
 
 - (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
 	if (hideOnLS) {
-		if (!CancelBulletin(bulletin)) {
-			ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
+		if (!CancelBulletin(item.activeBulletin)) {
+			ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
 			%orig;
 		} else {
-			ISLog(@"MUTED BULLETIN: %@",bulletin);
+			ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
 		}
 	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",bulletin);
+		ISLog(@"DID NOT MUTE BULLETIN BC LS IS ALLOWED: %@",item.activeBulletin);
 		%orig;
 	}
 }
@@ -256,7 +256,7 @@ static void RemoveConversation(CKConversation *conversation) {
 			ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
 		}
 	} else {
-		ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletin);
+		ISLog(@"DID NOT MUTE BULLETIN BC NC IS ALLOWED: %@",bulletinInfo.representedBulletin);
 		%orig;
 	}
 }
