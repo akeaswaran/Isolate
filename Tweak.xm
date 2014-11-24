@@ -34,7 +34,7 @@ static void ReloadSettingsOnStartup() {
 
 
 static BOOL CancelBulletin(BBBulletin *bulletin) {
-	if (!enabled || ![bulletin.sectionID isEqualToString:@"com.apple.MobileSMS"] || !bulletin.context[@"AssistantContext"]) {
+	if (![bulletin.sectionID isEqualToString:@"com.apple.MobileSMS"] || !bulletin.context[@"AssistantContext"]) {
 		ISLog(@"INVALID BULLETIN FOR MUTING");
 		return NO;
 	}
