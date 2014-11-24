@@ -124,6 +124,8 @@
     }
     [defaults writeToFile:kISSettingsPath atomically:YES];
 
+    [self reloadSpecifiers];
+
     CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, NULL, YES);
 }
 
