@@ -4,8 +4,9 @@
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
 
+#define TINT_COLOR [UIColor colorWithRed:0.24 green:0.70 blue:0.45 alpha:1.00]
+
 @interface IsolatePrefsListController: PSListController {
-    UIWindow *settingsView;
 }
 @end
 
@@ -88,14 +89,14 @@
 
 -(void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    settingsView = [[UIApplication sharedApplication] keyWindow];
-    settingsView.tintColor = [UIColor greenColor];
+    self.view.tintColor = TINT_COLOR;
+    self.navigationController.navigationBar.tintColor = TINT_COLOR;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    settingsView = [[UIApplication sharedApplication] keyWindow];
-    settingsView.tintColor = nil;
+    self.navigationController.navigationController.navigationBar.tintColor = nil;
+    self.view.tintColor = nil;
 }
 
 @end
