@@ -31,7 +31,7 @@
 
 //Blocks LS notifications
 @interface SBLockScreenNotificationListController
-- (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item;
+- (void)_updateModelAndViewForAdditionOfItem:(id)item;
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed;
 @end
 

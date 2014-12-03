@@ -184,13 +184,17 @@ static void RemoveConversation(CKConversation *conversation) {
 	
 }
 
-- (void)_updateModelAndViewForAdditionOfItem:(SBAwayBulletinListItem*)item {
+- (void)_updateModelAndViewForAdditionOfItem:(id)item {
 	
-	if (!CancelBulletin(item.activeBulletin)) {
-		ISLog(@"DID NOT MUTE BULLETIN: %@",item.activeBulletin);
-		%orig;
-	} else {
-		ISLog(@"MUTED BULLETIN: %@",item.activeBulletin);
+	if ([item isKindOfClass:[%c(SBAwayBulletinListItem) class]]) {
+		ISLog(@"VALID SBAWAYBULLETINLISTITEM FOR MUTING");
+		SBAwayBulletinListItem *bulletinItem = (SBAwayBulletinListItem*)item;
+		if (!CancelBulletin(bulletinItem.activeBulletin)) {
+			ISLog(@"DID NOT MUTE BULLETIN: %@",bulletinItem.activeBulletin);
+			%orig;
+		} else {
+			ISLog(@"MUTED BULLETIN: %@",bulletinItem.activeBulletin);
+		}
 	}
 	
 }
