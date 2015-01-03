@@ -1,9 +1,5 @@
 #import "Headers.h"
 
-#define kISSettingsPath @"/User/Library/Preferences/com.akeaswaran.isolate.plist"
-#define kISEnabledKey @"tweakEnabled"
-#define kISMutedConversationsKey @"mutedConvos"
-
 #ifdef DEBUG
     #define ISLog(fmt, ...) NSLog((@"[Isol8] %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
@@ -18,67 +14,80 @@ static void ReloadSettings() {
 	NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
 
 	NSNumber *enabledNum = preferences[kISEnabledKey];
-	enabled = enabledNum ? [enabledNum boolValue] : 1;
+	enabled = enabledNum ? [enabledNum boolValue] : 0;
 
 	ISLog(@"RELOADSETTINGS: %@",preferences);
 }
 
 static void ReloadSettingsOnStartup() {
-    NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
+  NSDictionary *preferences = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
 
-	NSNumber *enabledNum = preferences[kISEnabledKey];
-	enabled = enabledNum ? [enabledNum boolValue] : 1;
+  NSNumber *enabledNum = preferences[kISEnabledKey];
+  enabled = enabledNum ? [enabledNum boolValue] : 0;
 
-	ISLog(@"RELOADSETTINGSONSTARTUP: %@",preferences);
+  ISLog(@"RELOADSETTINGSONSTARTUP: %@",preferences);
 }
 
-
 static BOOL CancelBulletin(BBBulletin *bulletin) {
-	if (![bulletin.sectionID isEqualToString:@"com.apple.MobileSMS"] || !bulletin.context[@"AssistantContext"]) {
-		ISLog(@"INVALID BULLETIN FOR MUTING");
-		return NO;
-	}
+  if (![bulletin.sectionID isEqualToString:@"com.apple.MobileSMS"] || !bulletin.context[@"AssistantContext"])
+  {
+    ISLog(@"INVALID BULLETIN FOR MUTING");
+    return NO;
+  }
 
-	NSDictionary *context = bulletin.context;
-	NSDictionary *assistantContext = context[@"AssistantContext"];
-	NSString *chatId = context[@"CKBBUserInfoKeyChatIdentifier"];
+  NSDictionary *context = bulletin.context;
+  NSDictionary *assistantContext = context[@"AssistantContext"];
 
-	NSArray *recipients;
-	if (assistantContext[@"msgRecipients"]) {
-		if ([assistantContext[@"msgRecipients"] isKindOfClass:[NSArray class]]) {
-			recipients = assistantContext[@"msgRecipients"];
-		} else {
-			recipients = nil;
-		}
-	} else {
-		recipients = nil;
-	}
+  ISLog(@"BULLETIN CONTEXT: %@",assistantContext);
 
-	ISLog(@"CHATID: %@",chatId);
+  NSArray *recipients;
+  if (assistantContext[@"msgRecipients"]) {
+    if ([assistantContext[@"msgRecipients"] isKindOfClass:[NSArray class]]) {
+      recipients = assistantContext[@"msgRecipients"];
+    } else {
+      recipients = nil;
+    }
+  } else {
+    recipients = nil;
+  }
 
-	NSDictionary *storedPrefs = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
-	NSArray *muted;
-	if([storedPrefs objectForKey:kISMutedConversationsKey]) {
-		muted = [storedPrefs objectForKey:kISMutedConversationsKey];
-	} else {
-		muted = [NSArray array];
-	}
-	
-    ISLog(@"MUTED CHAT IDs: %@",muted);
+  NSString *chatId;
+  if (recipients) {
+    chatId = context[@"CKBBUserInfoKeyChatIdentifier"];
+  } else {
+    if ([assistantContext[@"msgSender"][@"data"] isKindOfClass:[NSString class]]) {
+      chatId = (NSString*)assistantContext[@"msgSender"][@"data"];
+    } else {
+      return NO;
+    }
+  }
 
-	if (enabled && recipients && chatId && recipients.count > 1) {
-		ISLog(@"ENABLED FOR VALID GROUP MESSAGE");
-		for (NSString *groupID in muted) {
-			if ([groupID isEqualToString:chatId]) {
-				ISLog(@"MUTING CONVERSATION WITH GROUP ID: %@",groupID);
-				return YES;
-			}
-		}
-	} else {
-		ISLog(@"DISABLED, INVALID, OR NOT GROUP MESSAGE; SO NOT MUTING CONVERSATION");
-		return NO;
-	}
-	return NO;
+  ISLog(@"CHATID: %@",chatId);
+
+  NSDictionary *storedPrefs = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
+  NSArray *muted;
+  if([storedPrefs objectForKey:kISMutedConversationsKey]) {
+    muted = [storedPrefs objectForKey:kISMutedConversationsKey];
+  } else {
+    muted = [NSArray array];
+  }
+
+  ISLog(@"MUTED CHAT IDs: %@",muted);
+
+  if (enabled && chatId) {
+      ISLog(@"ENABLED FOR VALID CONVERSATIONS");
+      for (NSString *identifier in muted) {
+        ISLog(@"COMPARING ID FROM ARRAY: %@ TO CHATID FROM BULLETIN: %@",identifier,chatId);
+        if ([identifier containsString:chatId]) {
+          ISLog(@"MUTING CONVERSATION WITH CHAT ID: %@",identifier);
+          return YES;
+        }
+      }
+  } else {
+    ISLog(@"DISABLED OR INVALID MESSAGE; NOT MUTING CONVERSATION");
+    return NO;
+  }
+  return NO;
 }
 
 static void SaveConversation(CKConversation *conversation) {
@@ -128,44 +137,81 @@ static void RemoveConversation(CKConversation *conversation) {
 }
 
 %ctor {
-	
+
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)ReloadSettings, CFSTR("com.akeaswaran.isolate/ReloadSettings"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
 	ReloadSettingsOnStartup();
-    
+
 }
 
 
 #pragma mark - Hooks
 
+%hook CKConversationListController
+
+- (void)loadView {
+  %orig;
+  if (enabled) {
+    NSDictionary *storedPrefs = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
+    NSArray *mutedConversations;
+    if([storedPrefs objectForKey:kISMutedConversationsKey]) {
+      mutedConversations = [storedPrefs objectForKey:kISMutedConversationsKey];
+    } else {
+      mutedConversations = [NSArray array];
+    }
+
+    if ([self.conversationList conversations] && [self.conversationList.conversations isKindOfClass:[NSArray class]]) {
+      NSArray *convos = [self.conversationList conversations];
+      for (CKConversation *conversation in convos) {
+        if (conversation.muted) {
+          ISLog(@"ENABLED AND TRYING TO CHANGE MUTE STATUS FOR VALID CONVERSATION");
+          ISLog(@"SWITCH TURNED ON; SAVING GROUPID IF POSSIBLE");
+          if (![mutedConversations containsObject:conversation.groupID]) {
+            ISLog(@"ADDING CONVERSATION TO MUTED WITH GROUPID: %@",conversation.groupID);
+            SaveConversation(conversation);
+          }
+        } else {
+          ISLog(@"SWITCH TURNED OFF; REMOVING GROUPID IF POSSIBLE");
+          if ([mutedConversations containsObject:conversation.groupID]) {
+            ISLog(@"REMOVING CONVERSATION TO MUTED WITH GROUPID: %@",conversation.groupID);
+            RemoveConversation(conversation);
+          }
+        }
+      }
+    }
+  }
+}
+
+%end
+
 %hook CKTranscriptRecipientsController
+
 - (void)_muteSwitchValueChanged:(UISwitch*)arg1 {
 	%orig;
-	if(enabled && self.conversation.recipients.count > 1) {
+  if(enabled) {
+    NSDictionary *storedPrefs = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
+    NSArray *mutedConversations;
+    if([storedPrefs objectForKey:kISMutedConversationsKey]) {
+      mutedConversations = [storedPrefs objectForKey:kISMutedConversationsKey];
+    } else {
+      mutedConversations = [NSArray array];
+    }
 
-		NSDictionary *storedPrefs = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
-		NSArray *mutedConversations;
-		if([storedPrefs objectForKey:kISMutedConversationsKey]) {
-			mutedConversations = [storedPrefs objectForKey:kISMutedConversationsKey];
-		} else {
-			mutedConversations = [NSArray array];
-		}
-
-		ISLog(@"ENABLED AND TRYING TO CHANGE MUTE STATUS FOR VALID GROUP MESSAGE");
-		if (arg1.on) {
-			ISLog(@"SWITCH TURNED ON; SAVING GROUPID IF POSSIBLE");
-			if (![mutedConversations containsObject:self.conversation.groupID]) {
-				ISLog(@"ADDING CONVERSATION TO MUTED WITH GROUPID: %@",self.conversation.groupID);
-				SaveConversation(self.conversation);
-			}
-		} else {
-			ISLog(@"SWITCH TURNED OFF; REMOVING GROUPID IF POSSIBLE");
-			if ([mutedConversations containsObject:self.conversation.groupID]) {
-				ISLog(@"REMOVING CONVERSATION TO MUTED WITH GROUPID: %@",self.conversation.groupID);
-				RemoveConversation(self.conversation);
-			}
-		}
-	}
+    ISLog(@"ENABLED AND TRYING TO CHANGE MUTE STATUS FOR VALID CONVERSATION");
+    if (arg1.on) {
+      ISLog(@"SWITCH TURNED ON; SAVING GROUPID IF POSSIBLE");
+      if (![mutedConversations containsObject:self.conversation.groupID]) {
+        ISLog(@"ADDING CONVERSATION TO MUTED WITH GROUPID: %@",self.conversation.groupID);
+        SaveConversation(self.conversation);
+      }
+    } else {
+      ISLog(@"SWITCH TURNED OFF; REMOVING GROUPID IF POSSIBLE");
+      if ([mutedConversations containsObject:self.conversation.groupID]) {
+        ISLog(@"REMOVING CONVERSATION TO MUTED WITH GROUPID: %@",self.conversation.groupID);
+        RemoveConversation(self.conversation);
+      }
+    }
+  }
 }
 
 %end
@@ -174,18 +220,18 @@ static void RemoveConversation(CKConversation *conversation) {
 %hook SBLockScreenNotificationListController
 
 - (void)observer:(BBObserver*)observer addBulletin:(BBBulletin*)bulletin forFeed:(NSUInteger)feed {
-	
+
 	if (!CancelBulletin(bulletin)) {
 		ISLog(@"DID NOT MUTE BULLETIN: %@",bulletin);
 		%orig;
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
-	
+
 }
 
 - (void)_updateModelAndViewForAdditionOfItem:(id)item {
-	
+
 	if ([item isKindOfClass:[%c(SBAwayBulletinListItem) class]]) {
 		ISLog(@"VALID SBAWAYBULLETINLISTITEM FOR MUTING");
 		SBAwayBulletinListItem *bulletinItem = (SBAwayBulletinListItem*)item;
@@ -196,7 +242,7 @@ static void RemoveConversation(CKConversation *conversation) {
 			ISLog(@"MUTED BULLETIN: %@",bulletinItem.activeBulletin);
 		}
 	}
-	
+
 }
 
 %end
@@ -216,7 +262,7 @@ static void RemoveConversation(CKConversation *conversation) {
 
 %end
 
-%hook SBBulletinObserverViewController  
+%hook SBBulletinObserverViewController
 
 -(void)addBulletin:(SBBBWidgetBulletinInfo*)bulletinInfo toSection:(id)sectionInfo forFeed:(NSUInteger)arg3 {
 
@@ -226,7 +272,7 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletinInfo.representedBulletin);
 	}
-	
+
 }
 
 %end
@@ -242,12 +288,7 @@ static void RemoveConversation(CKConversation *conversation) {
 	} else {
 		ISLog(@"MUTED BULLETIN: %@",bulletin);
 	}
-	
+
 }
 
 %end
-
-
-
-
-

@@ -1,12 +1,8 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSSpecifier.h>
+#import "../Headers.h"
 
-#define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
-#define kISEnabledKey @"tweakEnabled"
-
-#define TINT_COLOR [UIColor colorWithRed:0.24 green:0.70 blue:0.45 alpha:1.00]
-
-@interface IsolatePrefsListController: PSListController {
+@interface IsolatePrefsListController : PSListController {
 }
 @end
 
@@ -16,12 +12,9 @@
 {
     if (_specifiers == nil) {
         NSMutableArray *specifiers = [[NSMutableArray alloc] init];
-        
         [self setTitle:@"Isol8"];
-        
-        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Isol8 0.1"];
-        [firstGroup setProperty:@"© 2014 Akshay Easwaran" forKey:@"footerText"];
-        
+
+        PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Options"];
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
@@ -34,7 +27,7 @@
 
         PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
         [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
-        
+
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
                                                               target:self
                                                                  set:nil
@@ -47,14 +40,13 @@
         [github setIdentifier:@"github"];
         [github setProperty:@(YES) forKey:@"enabled"];
         [github setProperty:[UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/IsolatePrefs.bundle/github.png"] forKey:@"iconImage"];
-        
+
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
         [specifiers addObject:thirdGroup];
         [specifiers addObject:github];
         _specifiers = specifiers;
     }
-    
     return _specifiers;
 }
 
@@ -87,17 +79,4 @@
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://github.com/akeaswaran"]];
 }
 
--(void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    self.view.tintColor = TINT_COLOR;
-    self.navigationController.navigationBar.tintColor = TINT_COLOR;
-}
-
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-    self.navigationController.navigationController.navigationBar.tintColor = nil;
-    self.view.tintColor = nil;
-}
-
 @end
-
