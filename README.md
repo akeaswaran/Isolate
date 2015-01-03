@@ -12,7 +12,7 @@ How iOS 8's Messages DND mode was supposed to be implemented.
 * Isolate will automatically block banners, notification center alerts, and lock screen alerts for this conversation.
 
 ### Compatibility
-* Isolate works with iOS 8.0+ and all iDevice models
+* Isolate works with iOS 8.0+ and all iDevice models.
 
 
 ### Credits
