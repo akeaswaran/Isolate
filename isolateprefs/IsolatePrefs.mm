@@ -1,5 +1,6 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSSpecifier.h>
+#import <Preferences/PSTextFieldSpecifier.h>
 #import "../Headers.h"
 
 @interface IsolatePrefsListController : PSListController {
@@ -15,6 +16,8 @@
         [self setTitle:@"Isol8"];
 
         PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Options"];
+        [firstGroup setProperty:@"If Keyword Unmuting is enabled, then messages containing keywords will be unmuted." forKey:@"footerText"];
+
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
                                                                  set:@selector(setValue:forSpecifier:)
@@ -25,8 +28,24 @@
         [enabled setIdentifier:kISEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
 
-        PSSpecifier *thirdGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
-        [thirdGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
+        PSSpecifier *keywordUnmuting = [PSSpecifier preferenceSpecifierNamed:@"Enable Keyword Unmuting"
+                                                              target:self
+                                                                 set:@selector(setValue:forSpecifier:)
+                                                                 get:@selector(getValueForSpecifier:)
+                                                              detail:Nil
+                                                                cell:PSSwitchCell
+                                                                edit:Nil];
+        [keywordUnmuting setIdentifier:kISKeywordsEnabledKey];
+        [keywordUnmuting setProperty:@(YES) forKey:@"enabled"];
+
+        PSTextFieldSpecifier *keywordsField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"Keywords" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
+        [keywordsField setPlaceholder:@"john jappleseed"];
+        [keywordsField setIdentifier:kISKeywordsKey];
+        [keywordsField setProperty:@(YES) forKey:@"enabled"];
+        [keywordsField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
+
+        PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
+        [secondGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
 
         PSSpecifier *github = [PSSpecifier preferenceSpecifierNamed:@"github"
                                                               target:self
@@ -43,7 +62,10 @@
 
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
-        [specifiers addObject:thirdGroup];
+        [specifiers addObject:keywordUnmuting];
+        [specifiers addObject:keywordsField];
+
+        [specifiers addObject:secondGroup];
         [specifiers addObject:github];
         _specifiers = specifiers;
     }
@@ -54,11 +76,15 @@
 {
     NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
     if (settings[specifier.identifier]) {
-        NSNumber *settingEnabled = settings[specifier.identifier];
-        if (settingEnabled.intValue == 1) {
-            return [NSNumber numberWithBool:YES];
+        if (![specifier.identifier isEqual:kISKeywordsKey]) {
+            NSNumber *settingEnabled = settings[specifier.identifier];
+            if (settingEnabled.intValue == 1) {
+                return [NSNumber numberWithBool:YES];
+            } else {
+                return [NSNumber numberWithBool:NO];
+            }
         } else {
-            return [NSNumber numberWithBool:NO];
+            return settings[specifier.identifier];
         }
     }
     return [NSNumber numberWithBool:NO];
