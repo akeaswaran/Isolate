@@ -2,7 +2,8 @@ Isolate
 =======
 
 How iOS 8's Messages DND mode was supposed to be implemented.
-NOTE: iOS 8.2 fixes the Messages muting functionality, thereby making Isolate redundant. This repo now exists as sample code for other developers to learn from.
+
+**NOTE**: iOS 8.2 fixes the Messages muting functionality, thereby making Isolate redundant. This repo now exists as sample code for other developers to learn from.
 
 ### How to use Isolate
 
