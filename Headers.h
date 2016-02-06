@@ -3,8 +3,6 @@
 #define kISSettingsPath @"/var/mobile/Library/Preferences/com.akeaswaran.isolate.plist"
 #define kISEnabledKey @"tweakEnabled"
 #define kISMutedConversationsKey @"mutedConvos"
-#define kISKeywordsEnabledKey @"keywordsEnabled"
-#define kISKeywordsKey @"keywords"
 
 @interface BBBulletin
 @property(copy, nonatomic) NSString *sectionID;

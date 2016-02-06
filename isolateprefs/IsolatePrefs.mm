@@ -16,7 +16,6 @@
         [self setTitle:@"Isol8"];
 
         PSSpecifier *firstGroup = [PSSpecifier groupSpecifierWithName:@"Options"];
-        [firstGroup setProperty:@"If Keyword Unmuting is enabled, then messages containing keywords will be unmuted." forKey:@"footerText"];
 
         PSSpecifier *enabled = [PSSpecifier preferenceSpecifierNamed:@"Enabled"
                                                               target:self
@@ -27,22 +26,6 @@
                                                                 edit:Nil];
         [enabled setIdentifier:kISEnabledKey];
         [enabled setProperty:@(YES) forKey:@"enabled"];
-
-        PSSpecifier *keywordUnmuting = [PSSpecifier preferenceSpecifierNamed:@"Enable Keyword Unmuting"
-                                                              target:self
-                                                                 set:@selector(setValue:forSpecifier:)
-                                                                 get:@selector(getValueForSpecifier:)
-                                                              detail:Nil
-                                                                cell:PSSwitchCell
-                                                                edit:Nil];
-        [keywordUnmuting setIdentifier:kISKeywordsEnabledKey];
-        [keywordUnmuting setProperty:@(YES) forKey:@"enabled"];
-
-        PSTextFieldSpecifier *keywordsField = [PSTextFieldSpecifier preferenceSpecifierNamed:@"Keywords" target:self set:@selector(setValue:forSpecifier:) get:@selector(getValueForSpecifier:) detail:Nil cell:PSEditTextCell edit:Nil];
-        [keywordsField setPlaceholder:@"john jappleseed"];
-        [keywordsField setIdentifier:kISKeywordsKey];
-        [keywordsField setProperty:@(YES) forKey:@"enabled"];
-        [keywordsField setKeyboardType:UIKeyboardTypeASCIICapable autoCaps:UITextAutocapitalizationTypeWords autoCorrection:UITextAutocorrectionTypeYes];
 
         PSSpecifier *secondGroup = [PSSpecifier groupSpecifierWithName:@"Developer"];
         [secondGroup setProperty:@"This tweak is open source. You can check out this and other projects on my GitHub." forKey:@"footerText"];
@@ -62,8 +45,6 @@
 
         [specifiers addObject:firstGroup];
         [specifiers addObject:enabled];
-        [specifiers addObject:keywordUnmuting];
-        [specifiers addObject:keywordsField];
 
         [specifiers addObject:secondGroup];
         [specifiers addObject:github];
@@ -76,15 +57,11 @@
 {
     NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:kISSettingsPath];
     if (settings[specifier.identifier]) {
-        if (![specifier.identifier isEqual:kISKeywordsKey]) {
-            NSNumber *settingEnabled = settings[specifier.identifier];
-            if (settingEnabled.intValue == 1) {
-                return [NSNumber numberWithBool:YES];
-            } else {
-                return [NSNumber numberWithBool:NO];
-            }
+        NSNumber *settingEnabled = settings[specifier.identifier];
+        if (settingEnabled.intValue == 1) {
+            return [NSNumber numberWithBool:YES];
         } else {
-            return settings[specifier.identifier];
+            return [NSNumber numberWithBool:NO];
         }
     }
     return [NSNumber numberWithBool:NO];

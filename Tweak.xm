@@ -7,7 +7,6 @@
 #endif
 
 static BOOL enabled;
-static BOOL keywordUnmutingEnabled;
 static NSArray *keywords;
 
 #pragma mark - Static Methods
@@ -18,16 +17,6 @@ static void ReloadSettings() {
 	NSNumber *enabledNum = preferences[kISEnabledKey];
 	enabled = enabledNum ? [enabledNum boolValue] : 0;
 
-  NSNumber *keyEnabledNum = preferences[kISKeywordsEnabledKey];
-  keywordUnmutingEnabled = keyEnabledNum ? [keyEnabledNum boolValue] : 0;
-
-  if (keywordUnmutingEnabled) {
-    NSString *keywordString = preferences[kISKeywordsKey];
-    keywords = [keywordString.lowercaseString componentsSeparatedByString:@" "];
-  } else {
-    keywords = @[];
-  }
-
 	ISLog(@"RELOADSETTINGS: %@",preferences);
 }
 
@@ -36,16 +25,6 @@ static void ReloadSettingsOnStartup() {
 
   NSNumber *enabledNum = preferences[kISEnabledKey];
   enabled = enabledNum ? [enabledNum boolValue] : 0;
-
-  NSNumber *keyEnabledNum = preferences[kISKeywordsEnabledKey];
-  keywordUnmutingEnabled = keyEnabledNum ? [keyEnabledNum boolValue] : 0;
-
-  if (keywordUnmutingEnabled) {
-    NSString *keywordString = preferences[kISKeywordsKey];
-    keywords = [keywordString.lowercaseString componentsSeparatedByString:@" "];
-  } else {
-    keywords = @[];
-  }
 
   ISLog(@"RELOADSETTINGSONSTARTUP: %@",preferences);
 }
@@ -61,15 +40,6 @@ static BOOL CancelBulletin(BBBulletin *bulletin) {
   NSDictionary *assistantContext = context[@"AssistantContext"];
 
   ISLog(@"BULLETIN CONTEXT: %@",assistantContext);
-
-  if (keywordUnmutingEnabled && keywords.count > 0) {
-    NSString *message = bulletin.message.lowercaseString;
-    for (NSString *keyword in keywords) {
-      if ([message rangeOfString:keyword].location != NSNotFound) {
-        return NO;
-      }
-    }
-  }
 
   NSArray *recipients;
   if (assistantContext[@"msgRecipients"]) {
@@ -136,8 +106,7 @@ static void SaveConversation(CKConversation *conversation) {
 	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
 	if (success) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
-		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+		ISLog(@"STORED PREFS ARRAY: %@",[[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath] objectForKey:kISMutedConversationsKey]);
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
 	}
@@ -159,8 +128,7 @@ static void RemoveConversation(CKConversation *conversation) {
 	BOOL success = [storedPrefs writeToFile:kISSettingsPath atomically:YES];
 	if (success) {
 		ISLog(@"PREFS WRITTEN SUCCESSFULLY");
-		NSDictionary *temp = [[NSDictionary alloc] initWithContentsOfFile:kISSettingsPath];
-		ISLog(@"STORED PREFS ARRAY: %@",temp[kISMutedConversationsKey]);
+		ISLog(@"STORED PREFS ARRAY: %@",[[NSDictionary dictionaryWithContentsOfFile:kISSettingsPath] objectForKey:kISMutedConversationsKey]);
 	} else {
 		ISLog(@"PREFS FAILED TO SAVE");
 	}
